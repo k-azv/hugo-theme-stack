@@ -1,16 +1,149 @@
 {{- $query := first 1 (where .Context.Site.Pages "Layout" "==" "search") -}}
 {{- if $query -}}
     {{- $searchPage := index $query 0 -}}
-    <form action="{{ $searchPage.RelPermalink }}" class="search-form widget" {{ with .OutputFormats.Get "json" -}}data-json="{{ .Permalink }}" {{- end }}>
-        <p>
-            <label>{{ T "search.title" }}</label>
-            <input name="keyword" required placeholder="{{ T `search.placeholder` }}" />
-        
-            <button title="{{ T `search.title` }}">
-                {{ partial "helper/icon" "search" }}
-            </button>
-        </p>
-    </form>
+    <div class="widget-search-container">
+        <form action="{{ $searchPage.RelPermalink }}" class="search-form widget" {{ with $searchPage.OutputFormats.Get "json" -}}data-json="{{ .Permalink }}" {{- end }}>
+            <p>
+                <label>{{ T "search.title" }}</label>
+                <input name="keyword" placeholder="{{ T `search.placeholder` }}" />
+
+                <button type="button" title="{{ T `search.title` }}" class="search-form-submit">
+                    {{ partial "helper/icon" "search" }}
+                </button>
+            </p>
+        </form>
+
+        {{/* 下拉式搜索结果容器 */}}
+        <div class="search-result widget-search-result">
+            <h3 class="search-result--title section-title"></h3>
+            <div class="search-result--list article-list--compact"></div>
+        </div>
+    </div>
+
+    {{/* 只在第一次包含时加载脚本 */}}
+    {{- if not (.Context.Scratch.Get "searchScriptLoaded") -}}
+        {{- .Context.Scratch.Set "searchScriptLoaded" true -}}
+
+        {{/* 必须在 search.tsx 加载前拦截 history 方法 */}}
+        <script>
+            (function() {
+                const originalReplaceState = window.history.replaceState;
+                const originalPushState = window.history.pushState;
+
+                function urlHasKeyword(args) {
+                    if (args && args.length >= 3) {
+                        const url = args[2];
+                        if (typeof url === 'string') {
+                            return url.includes('keyword=');
+                        }
+                    }
+                    return false;
+                }
+
+                window.history.replaceState = function() {
+                    if (urlHasKeyword(arguments) && document.querySelector('.widget-search-container')) {
+                        return;
+                    }
+                    return originalReplaceState.apply(this, arguments);
+                };
+
+                window.history.pushState = function() {
+                    if (urlHasKeyword(arguments) && document.querySelector('.widget-search-container')) {
+                        return;
+                    }
+                    return originalPushState.apply(this, arguments);
+                };
+
+                window.__originalReplaceState = originalReplaceState;
+            })();
+        </script>
+
+        <script>
+            window.searchResultTitleTemplate = "{{ T `search.resultTitle` }}"
+        </script>
+
+        {{- $opts := dict "minify" hugo.IsProduction "JSXFactory" "createElement" -}}
+        {{- $searchScript := resources.Get "ts/search.tsx" | js.Build $opts | fingerprint -}}
+        <script type="text/javascript" src="{{ $searchScript.RelPermalink }}" defer></script>
+
+        <script>
+            window.addEventListener('load', function() {
+                const widgetSearchContainers = document.querySelectorAll('.widget-search-container');
+
+                widgetSearchContainers.forEach(container => {
+                    const searchInput = container.querySelector('input[name="keyword"]');
+                    const searchResult = container.querySelector('.widget-search-result');
+                    const searchResultList = container.querySelector('.search-result--list');
+                    const searchForm = container.querySelector('.search-form');
+
+                    if (!searchInput || !searchResult) return;
+
+                    let isMouseOverResult = false;
+                    let userIsTyping = false;
+
+                    const currentUrl = new URL(window.location.href);
+                    if (currentUrl.searchParams.has('keyword')) {
+                        currentUrl.searchParams.delete('keyword');
+                        window.__originalReplaceState.call(window.history, {}, '', currentUrl.toString());
+                    }
+
+                    searchInput.addEventListener('input', function() {
+                        userIsTyping = true;
+                    });
+
+                    const observer = new MutationObserver(function(mutations) {
+                        const hasResults = searchResultList.children.length > 0;
+                        const hasKeyword = searchInput.value.trim() !== '';
+                        const shouldShow = hasResults && hasKeyword && (userIsTyping || document.activeElement === searchInput);
+
+                        if (shouldShow) {
+                            searchResult.classList.add('active');
+                        } else if (!hasResults || !hasKeyword) {
+                            searchResult.classList.remove('active');
+                        }
+                    });
+
+                    observer.observe(searchResultList, {
+                        childList: true,
+                        subtree: true
+                    });
+
+                    searchResult.addEventListener('mouseenter', function() {
+                        isMouseOverResult = true;
+                    });
+
+                    searchResult.addEventListener('mouseleave', function() {
+                        isMouseOverResult = false;
+                    });
+
+                    searchInput.addEventListener('blur', function() {
+                        userIsTyping = false;
+                        setTimeout(function() {
+                            if (!isMouseOverResult) {
+                                searchResult.classList.remove('active');
+                            }
+                        }, 150);
+                    });
+
+                    searchInput.addEventListener('focus', function() {
+                        if (searchInput.value.trim() !== '' && searchResultList.children.length > 0) {
+                            searchResult.classList.add('active');
+                        }
+                    });
+
+                    searchResult.addEventListener('click', function(e) {
+                        if (e.target.closest('article')) {
+                            searchResult.classList.remove('active');
+                        }
+                    });
+
+                    searchForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                    });
+                });
+            });
+        </script>
+    {{- end -}}
 {{- else -}}
     {{- warnf "Search page not found. Create a page with layout: search." -}}
 {{- end -}}
