@@ -284,9 +284,11 @@
     code {
         color: var(--code-text-color);
         background-color: var(--code-background-color);
-        padding: 2px 4px;
-        border-radius: var(--tag-border-radius);
+        padding: .2em .4em;
+        border-radius: 6px;
         font-family: var(--code-font-family);
+        font-size: 85%;
+        white-space: break-spaces;
     }
 
     a,

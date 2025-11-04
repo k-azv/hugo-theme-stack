@@ -117,8 +117,8 @@ $defaultTagColors: #fff, #fff, #fff, #fff, #fff;
     --pre-background-color: #272822;
     --pre-text-color: #f8f8f2;
 
-    --code-background-color: rgba(0, 0, 0, 0.12);
-    --code-text-color: #808080;
+    --code-background-color: rgba(129, 139, 152, 0.12);
+    --code-text-color: #1f2328;
 
     --table-border-color: #dadada;
     --tr-even-background-color: #efefee;
@@ -126,7 +126,7 @@ $defaultTagColors: #fff, #fff, #fff, #fff, #fff;
     --kbd-border-color: #dadada;
 
     &[data-scheme="dark"] {
-        --code-background-color: #272822;
+        --code-background-color: rgba(101, 108, 118, 0.2);
         --code-text-color: rgba(255, 255, 255, 0.9);
 
         --table-border-color: #717171;
