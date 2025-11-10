@@ -193,13 +193,6 @@
             margin: 0;
         }
 
-        &.has-image {
-            .article-details {
-                padding: 20px;
-                background: linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
-            }
-        }
-
         @for $i from 1 through length($tileCardBackgrounds) {
             &:nth-child(#{length($tileCardBackgrounds)}n + #{$i}):not(.has-image) {
                 background: nth($tileCardBackgrounds, $i);
