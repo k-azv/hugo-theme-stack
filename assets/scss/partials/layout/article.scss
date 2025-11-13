@@ -82,6 +82,19 @@
             }
         }
     }
+
+    /// PhotoSwipe fallback: keep lightbox overlay hidden until library styles load
+    .pswp {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+
+        &.pswp--open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+    }
 }
 
 .widget--toc {
