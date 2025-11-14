@@ -23,6 +23,11 @@
                 {{- block "main" . }}{{- end }}
             </main>
         </div>
+
+        <button id="back-to-top" class="back-to-top" aria-label="Back to top">
+            {{ partial "helper/icon" "arrow-up" }}
+        </button>
+
         {{ partial "footer/include.html" . }}
     </body>
 </html>
