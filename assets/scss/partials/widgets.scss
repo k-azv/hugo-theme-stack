@@ -109,6 +109,10 @@
     .search-result--list {
         max-height: 450px;
         overflow-y: auto;
+
+        /* 覆盖 article-list--compact 的样式，避免双重圆角 */
+        border-radius: 0;
+        box-shadow: none;
         background-color: transparent;
 
         &::-webkit-scrollbar {
