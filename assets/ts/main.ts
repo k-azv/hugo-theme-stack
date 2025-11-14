@@ -66,7 +66,7 @@ let Stack = {
     }
 }
 
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
     setTimeout(function () {
         Stack.init();
     }, 0);

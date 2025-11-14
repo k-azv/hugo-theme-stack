@@ -22,6 +22,7 @@ class BackToTop {
 
         this.button = buttonEl;
         this.bindEvents();
+        this.toggleVisibility();
     }
 
     private bindEvents() {
